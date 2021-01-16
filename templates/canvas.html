@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draw Here</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <style type='text/css'>
+        #sheet {
+            border:10px solid black;
+        }
+        .jumbotron {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.centering {
+  text-align: center;
+}
+
+    </style>
+
+  </head>
+  <body >
+  
+  
+  <div class="jumbotron jumbotron-fluid centering">
+  <div class="container-fluid" >
+    <h1 class="display-4">Draw Here</h1>
+    <p class="lead">Draw using mouse or joystick</p>
+        <canvas id="sheet" width="255" height="255"></canvas>
+ <!--   
+ <pre id="demo" name="databox"></pre>
+ -->
+	<h3 id="answer" ></h3>
+<button onclick="sendDataset()" class="btn btn-primary">Predict</button> 
+<button onclick="yes()" class="btn btn-success" >Recognized</button>
+<a href="contact"><button onclick="checkRound()" class="btn btn-info" >Draw next</button></a>
+<p id="demo1"> </p>
+
+
+<pre>Round<h4 id="demo2"></h4></pre>
+  <h1 >Your score is<h1 id="score"></h1></h1>
+</div>
+
+  </div>
+</div>
+
+
+<script>
+
+//var initial=0;
+//localStorage.setItem("c", initial);
+//var round=0;
+//localStorage.setItem("r", round);
+
+var ask="If your Word is present inprediction plese click 'Recognized' ";
+document.getElementById("demo1").innerHTML =ask;
+
+var roundno = localStorage.getItem("r");
+  roundno=parseInt(roundno);
+  round=roundno.toString();
+  round=localStorage.setItem("r", round);
+document.getElementById("demo2").innerHTML =roundno;
+
+
+var s=localStorage.getItem("c");
+document.getElementById("score").innerHTML =s;
+  
+
+function Yesfun(){
+count++;
+total++;
+//previous page
+document.getElementById("d1").innerHTML =count;
+document.getElementById("d2").innerHTML =total;
+
+}
+
+function NoFun(){
+total++;
+//
+document.getElementById("d1").innerHTML =count;
+document.getElementById("d2").innerHTML =total;
+
+}
+
+
+
+
+function sendDataset() {
+  axios.post('http://localhost:5000/canvas-predict', {dataset}).then( (res) => {
+    console.log(res);
+    document.getElementById("answer").innerHTML =JSON.stringify(res.data);
+    });
+    
+}
+
+
+
+
+//
+function checkRound()
+{
+  // var delay = 4000;
+  var roundno = localStorage.getItem("r");
+  roundno=parseInt(roundno);
+  roundno=roundno+1
+  round=roundno.toString();
+  round=localStorage.setItem("r", round);
+  if (roundno == 6) {
+    s=localStorage.getItem("c");
+    document.getElementById("score").innerHTML =s;
+    var round=0;
+    localStorage.setItem("r", round);
+    var initial=0;
+    localStorage.setItem("c", initial);
+
+} else {
+  document.getElementById("demo2").innerHTML =roundno;
+  s=localStorage.getItem("c");
+  document.getElementById("score").innerHTML =s;
+}
+}
+function yes(){
+
+  var count = localStorage.getItem("c");
+  strCountToInt=parseInt(count);
+  strCountToInt=strCountToInt+1;
+  count=strCountToInt.toString()
+  localStorage.setItem("c", count);
+  var ask=" your score is updated";
+  document.getElementById("demo1").innerHTML =ask;
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type='text/javascript'>
+/*jslint browser:true */
+"use strict";
+var context = document.getElementById('sheet').getContext("2d");
+var canvas = document.getElementById('sheet');
+context = canvas.getContext("2d");
+context.strokeStyle = "#ff0000";
+context.lineJoin = "round";
+context.lineWidth = 2;
+
+var clickX = [];
+var clickY = [];
+var clickDrag = [];
+var paint;
+var dataset = [];
+
+/**
+ * Add information where the user clicked at.
+ * @param {number} x
+ * @param {number} y
+ * @return {boolean} dragging
+ */
+function addClick(x, y, dragging) {
+    clickX.push(x);
+    clickY.push(y);
+    clickDrag.push(dragging);
+}
+
+/**
+ * Redraw the complete canvas.
+ */
+function redraw() {
+    // Clears the canvas
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+    for (var i = 0; i < clickX.length; i += 1) {
+        if (!clickDrag[i] && i == 0) {
+            context.beginPath();
+            context.moveTo(clickX[i], clickY[i]);
+            context.stroke();
+        } else if (!clickDrag[i] && i > 0) {
+            context.closePath();
+
+            context.beginPath();
+            context.moveTo(clickX[i], clickY[i]);
+            context.stroke();
+        } else {
+            context.lineTo(clickX[i], clickY[i]);
+            context.stroke();
+        }
+    }
+}
+
+/**
+ * Draw the newly added point.
+ * @return {void}
+ */
+function drawNew() {
+    var i = clickX.length - 1
+    if (!clickDrag[i]) {
+        if (clickX.length == 0) {
+            context.beginPath();
+            context.moveTo(clickX[i], clickY[i]);
+            context.stroke();
+           //alert("stroke");
+        } else {
+            context.closePath();
+
+            context.beginPath();
+            context.moveTo(clickX[i], clickY[i]);
+            context.stroke();
+            //stroke_num.push(clickX,clickY);
+           
+        }
+    } else {
+        context.lineTo(clickX[i], clickY[i]);
+        context.stroke();
+    }
+    // document.getElementById("demo1").innerHTML =clickY;
+    // document.getElementById("demo2").innerHTML ={{length}};
+
+}
+
+
+function mouseDownEventHandler(e) {
+    paint = true;
+    var x = e.pageX - canvas.offsetLeft;
+    var y = e.pageY - canvas.offsetTop;
+    if (paint) {
+        addClick(x, y, false);
+        drawNew();
+    }
+}
+
+function touchstartEventHandler(e) {
+    paint = true;
+    if (paint) {
+        addClick(e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop, false);
+        drawNew();
+    }
+}
+
+function mouseUpEventHandler(e) {
+    context.closePath();
+    paint = false;
+    //x aur y axis yahan se utha lena. 
+
+    //
+    	//apna code iss block mai likh lena.. and fir uss hisab se dataset mai push kar dena results. 
+    //
+    dataset.push([[...clickX], [...clickY]]);
+    clickX = [];
+    clickY = [];
+    console.log(dataset);
+    
+   // document.getElementById("demo").innerHTML =JSON.stringify({dataset});
+
+
+}
+
+function mouseMoveEventHandler(e) {
+    var x = e.pageX - canvas.offsetLeft;
+    var y = e.pageY - canvas.offsetTop;
+    if (paint) {
+        addClick(x, y, true);
+        drawNew();
+    }
+}
+
+function touchMoveEventHandler(e) {
+    if (paint) {
+        addClick(e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop, true);
+        drawNew();
+    }
+}
+
+function setUpHandler(isMouseandNotTouch, detectEvent) {
+    removeRaceHandlers();
+    if (isMouseandNotTouch) {
+        canvas.addEventListener('mouseup', mouseUpEventHandler);
+        canvas.addEventListener('mousemove', mouseMoveEventHandler);
+        canvas.addEventListener('mousedown', mouseDownEventHandler);
+        mouseDownEventHandler(detectEvent);
+    } else {
+        canvas.addEventListener('touchstart', touchstartEventHandler);
+        canvas.addEventListener('touchmove', touchMoveEventHandler);
+        canvas.addEventListener('touchend', mouseUpEventHandler);
+        touchstartEventHandler(detectEvent);
+    }
+}
+
+function mouseWins(e) {
+    setUpHandler(true, e);
+}
+
+function touchWins(e) {
+    setUpHandler(false, e);
+}
+
+function removeRaceHandlers() {
+    canvas.removeEventListener('mousedown', mouseWins);
+    canvas.removeEventListener('touchstart', touchWins);
+}
+
+canvas.addEventListener('mousedown', mouseWins);
+canvas.addEventListener('touchstart', touchWins);
+    </script>
+  </body>
+</html>

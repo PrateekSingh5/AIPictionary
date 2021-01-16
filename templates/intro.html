@@ -1,0 +1,18 @@
+<<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="{{url_for('static',filename='js/script.js')}}"></script>
+    <title>javascript</title>
+  </head>
+  <body>
+    <p>countdown</p>
+      <div class="row begin-countdown">
+    <div class="col-md-12 text-center">
+      <progress value="10" max="10" id="pageBeginCountdown"></progress>
+      <p> Begining in <span id="pageBeginCountdownText">10 </span> seconds</p>
+    </div>
+  </div>
+  <p>catagory to draw {{name}} and number is{{n}}</p>
+  </body>
+</html>
